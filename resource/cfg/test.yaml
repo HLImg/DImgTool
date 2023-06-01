@@ -1,0 +1,72 @@
+global_setting:
+    action : test
+    device : "0, 1"
+    seed : 20000320
+    record_dir : Experiment
+    note_name : dncnn
+
+model :
+  task : denoise
+  name : standard
+
+test :
+  gpu : True
+  batch_size : 1
+  num_worker : 0
+  save :
+    mat : True
+    image : True
+    contrast : True
+    dpi : 600
+  metric :
+    border : 0
+    color : rgb
+    net_type : ~ # vgg16
+    mode :
+      psnr : True
+      ssim : True
+      lpips : True
+  resume :
+    state : True
+    mode : nets
+    ckpt : Experiment/train/denoise/dncnn/0531_20_38_30/save_ckpt/model_current_0001.pth
+
+# record experiment
+directory:
+  runlog : run_log
+  resume : resume_model
+  save_model: save_ckpt
+  vision : vision
+
+dataset :
+    task : "denoise"
+    name : "synthetic"
+    params :
+        test :
+            target_dir : /home/Public/ImageProcessing/TestData/CBSD68/gt/
+            clip : False
+            color : rgb
+            levels : [25.]
+            noise_type : gaussian
+
+network:
+  task : denoise
+  net_g :
+    name : dncnn
+    param :
+      in_ch : 3
+      out_ch : 3
+      wf : 64
+      depth : 5
+  # net_d1 :
+  #   name : dncnn
+  #   param :
+  #     in_ch: 3
+  #     out_ch: 3
+  #     wf: 64
+  #     depth: 10
+
+
+
+
+

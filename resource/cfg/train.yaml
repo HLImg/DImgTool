@@ -1,0 +1,121 @@
+global_setting:
+    action : train
+    device : "0, 1"
+    seed : 20000320
+    record_dir : Experiment
+    note_name : dncnn
+    compile : False # pytorch2.0 compile model
+
+model :
+  task : denoise
+  name : standard
+
+train :
+  iteration : 1.e+5
+  batch_per_gpu : 2
+  valid_batch_size : 1
+  train_num_worker_per_gpu : 2
+  valid_fre_epoch : 1
+  patience : 1
+  metric :
+    border : 0
+    color : rgb
+    mode : metric
+  init :
+    state : False
+    name : ~
+  resume :
+    state : True
+    mode : all
+    ckpt : Experiment/train/denoise/dncnn/0531_20_38_30/save_ckpt/model_current_0001.pth
+
+# record experiment
+directory:
+  runlog : run_log
+  resume : resume_model
+  save_model: save_ckpt
+
+dataset :
+    task : "denoise"
+    name : "synthetic"
+    params :
+        train :
+            target_dir : /home/Public/ImageProcessing/JPEGImage/
+            patch_size : 32
+            levels : [25.]
+            noise_type : gaussian
+            clip : False
+            color : rgb
+            aug_rot : True
+            aug_flip : True
+        test :
+            target_dir : /home/Public/ImageProcessing/TestData/CBSD68/gt/
+            clip : False
+            color : rgb
+            levels : [25.]
+            noise_type : gaussian
+
+loss :
+    type : basic
+    pixel :
+        name : l1
+        param :
+            weight : 1.
+            reduction : mean
+    # image :
+    #     name : perceptual
+    #     param :
+    #       basic_loss: l1
+    #       net_type : vgg16_bn
+    #       weight : 1.
+    #       net_indexs : [4,11,21,31,41]
+
+network:
+  task : denoise
+  net_g :
+    name : dncnn
+    param :
+      in_ch : 3
+      out_ch : 3
+      wf : 64
+      depth : 5
+  # net_d1 :
+  #   name : dncnn
+  #   param :
+  #     in_ch: 3
+  #     out_ch: 3
+  #     wf: 64
+  #     depth: 10
+
+optimizer :
+  optim_g :
+    name : Adam
+    param :
+      lr : 2.e-4
+      weight_decay : 0
+      betas : [0.9, 0.99]
+    gradient_max : -1
+  # optim_d1 :
+  #   name : Adam
+  #   param :
+  #     lr : 2.e-4
+  #   gradient_max : -1
+
+scheduler :
+  state : True
+  scheduler_g :
+    name : "MultiStepLR"
+    param :
+        milestones: [200, 400, 500, 1000]
+        gamma: 0.5
+
+  # scheduler_d1:
+  #   name: "MultiStepLR"
+  #   param:
+  #     params:
+  #       milestones: [ 755, 1208, 1359, 1434 ]
+  #       gamma: 0.5
+
+
+
+
