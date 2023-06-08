@@ -66,15 +66,18 @@ def train(model, opt, logger):
 
 def in_let(opt, args, accelerator):
     recorder = Recorder(opt)
-    recorder.__call__()
+    recorder.__call__(accelerator)
     _, yamlfile = os.path.split(args.yaml)
-    shutil.copy(args.yaml, os.path.join(recorder.main_record, yamlfile))
+    if accelerator.is_local_main_process:
+        shutil.copy(args.yaml, os.path.join(recorder.main_record, yamlfile))
+    accelerator.wait_for_everyone()
     logger = Logger(log_dir=recorder.main_record)()
     logger.info(
-        '# --------------------------------------------------------------------------------------------------------------------------#')
+            '# --------------------------------------------------------------------------------------------------------------------------#')
     logger.info(
-        '#                                                   Start Training                                                          #')
+            '#                                                   Start Training                                                          #')
     logger.info(
         '# --------------------------------------------------------------------------------------------------------------------------#')
     model = Model(opt, logger, recorder.main_record, accelerator)()
     train(model, opt, logger)
+    
