@@ -42,17 +42,30 @@ class Recorder:
             if not os.path.exists(dir):
                 os.mkdir(dir)
 
-    def __call__(self):
+    def __call__(self, accelerator=None):
         inlet_dir = self.option['global_setting']['record_dir']
         action_dir = os.path.join(inlet_dir,  self.action)
         task_dir = os.path.join(action_dir, self.option['model']['task'])
         model_dir = os.path.join(task_dir, self.option['global_setting']['note_name'])
         self.main_record = os.path.join(model_dir, self.__current_time__())
-        self.__check_dir__(inlet_dir, action_dir, task_dir, model_dir, self.main_record)
+        if accelerator is not None:
+            if accelerator.is_local_main_process:
+                self.__check_dir__(inlet_dir, action_dir, task_dir, model_dir, self.main_record)
+        else:
+            self.__check_dir__(inlet_dir, action_dir, task_dir, model_dir, self.main_record)
         for key in self.dir.keys():
             folder = os.path.join(self.main_record, self.dir[key])
-            self.__check_dir__(folder)
-        self.__copy_file__()
+            if accelerator is not None:
+                if accelerator.is_local_main_process:
+                    self.__check_dir__(folder)
+            else:
+                self.__check_dir__(folder)
+        
+        if accelerator is not None:
+            if accelerator.is_local_main_process:
+                self.__copy_file__()
+        else:
+            self.__copy_file__()
 
     def __copy_file__(self):
         if self.option[self.action]['resume']['state']:
